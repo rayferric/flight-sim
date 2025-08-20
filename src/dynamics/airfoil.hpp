@@ -8,6 +8,10 @@ class airfoil {
 public:
 	// lift
 	curve cl_vs_aoa_curve;
+	float max_sampled_stall_angle = 0.0f;
+	float min_sampled_stall_angle = 0.0f;
+	float max_sampled_cl          = 0.0f;
+	float min_sampled_cl          = 0.0f;
 	float sweep_deg;
 	float flap_eff_per_rad;
 	float slat_eff_per_rad;
@@ -26,11 +30,11 @@ public:
 
 	airfoil(
 	    const curve &cl_vs_aoa_curve,
-	    float        curve_max_cl        = 1.5f,
+	    float        curve_max_cl        = 2.4f,
 	    float        curve_max_aoa_deg   = 30.0f,
-	    float        sweep_deg           = 45.0f,
-	    float        flap_eff_per_rad    = 0.5f,
-	    float        slat_eff_per_rad    = 0.5f,
+	    float        sweep_deg           = 40.0f,
+	    float        flap_eff_per_rad    = 0.7f,
+	    float        slat_eff_per_rad    = 0.7f,
 	    float        base_cd             = 0.02f,
 	    float        cd_aoa2_scale       = 0.0002f,
 	    float        flap_cd_eff_per_deg = 0.001f,
@@ -42,6 +46,17 @@ public:
 		    -curve_max_aoa_deg, curve_max_aoa_deg
 		);
 		this->cl_vs_aoa_curve.set_y_range(-curve_max_cl, curve_max_cl);
+		for (float x = -curve_max_aoa_deg; x <= curve_max_aoa_deg; x += 0.1f) {
+			float y = this->cl_vs_aoa_curve.sample(x);
+			if (y > this->max_sampled_cl) {
+				this->max_sampled_cl          = y;
+				this->max_sampled_stall_angle = x;
+			}
+			if (y < this->min_sampled_cl) {
+				this->min_sampled_cl          = y;
+				this->min_sampled_stall_angle = x;
+			}
+		}
 		this->sweep_deg        = sweep_deg;
 		this->flap_eff_per_rad = flap_eff_per_rad;
 		this->slat_eff_per_rad = slat_eff_per_rad;
@@ -74,10 +89,21 @@ public:
 		float curve_scale = (cl_max + d_cl_max) / cl_max; // [1, 1.something]
 
 		float cl = cl_vs_aoa_curve.sample(aoa_deg / curve_scale) * curve_scale;
-		std::cout << "CL: " << cl << ", aoa: " << aoa_deg << std::endl;
 
 		// flap effect
-		cl += flap_eff_per_rad * glm::radians(flap_deg);
+		float flap_eff_factor;
+		if (aoa_deg > 0.0f) {
+			flap_eff_factor = 1.0f - glm::smoothstep(
+			                             max_sampled_stall_angle,
+			                             this->cl_vs_aoa_curve.x_max,
+			                             aoa_deg
+			                         );
+		} else {
+			flap_eff_factor = glm::smoothstep(
+			    this->cl_vs_aoa_curve.x_min, min_sampled_stall_angle, aoa_deg
+			);
+		}
+		cl += flap_eff_factor * flap_eff_per_rad * glm::radians(flap_deg);
 
 		// sweep effect
 		if (this->sweep_deg > 0.0f) {

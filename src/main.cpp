@@ -1,3 +1,4 @@
+#include "entity/skybox.hpp"
 #include "pch.hpp"
 
 #include "entity/basic_camera.hpp"
@@ -14,8 +15,11 @@ int main() {
 	window window;
 	window.open(800, 600, "Flight Sim");
 
-	// follow_camera cam;
-	basic_camera cam;
+	skybox sky;
+	sky.init("../shaders/skybox.vert", "../shaders/skybox.frag");
+
+	follow_camera cam;
+	// fps_camera cam;
 	cam.set_pose(glm::vec3(-40.0f, 0.0f, 10.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
 	jet jet;
@@ -46,7 +50,9 @@ int main() {
 	window.run_loop({
 		.on_draw = [&]() {
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			jet.draw();
+			sky.draw();
+			glClear(GL_DEPTH_BUFFER_BIT);
+			jet.draw(true);
 			grid.draw();
 		},
 		.on_update = [&]() {
@@ -57,14 +63,15 @@ int main() {
 			last_update_time = now;
 
 			// cam.update_fps_pose_from_input(window, dt);
-			// cam.update_pose_from_follow_target(window, dt, jet.get_center_of_mass());
-			glm::vec3 com = jet.get_center_of_mass();
-			glm::vec3 rpy = jet.get_rpy();
-			glm::quat rot = jet.get_quat();
-			cam.set_pose(
-			    com + rot * glm::vec3(-30.0f, 0.0f, 10.0f),
-			    glm::vec3(0.0f, rpy.y, rpy.z)
-			);
+			cam.update_pose_from_follow_target(window, dt, jet.get_center_of_mass());
+			// glm::vec3 com = jet.get_center_of_mass();
+			// glm::vec3 rpy = jet.get_rpy();
+			// glm::quat rot = jet.get_quat();
+			// glm::quat deg45_rot = glm::angleAxis(glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+			// cam.set_pose(
+			//     com + rot * glm::vec3(-30.0f, 0.0f, 10.0f),
+			//     glm::vec3(rpy.x, rpy.y, rpy.z)
+			// );
 			grid.update_tiling_from_view_pos(cam.get_pos_flu());
 			jet.update_physics_from_input(window, dt);
 		},

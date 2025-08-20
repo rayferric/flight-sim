@@ -8,6 +8,7 @@ void follow_camera::update_pose_from_follow_target(
 	glm::vec3 target_to_cam = pos_flu - target_pos;
 	glm::vec3 dst_cam_pos =
 	    target_pos + glm::normalize(target_to_cam) * follow_radius;
+	dst_cam_pos += glm::vec3(0.0f, 0.0f, 3.0f); // add some height
 
 	glm::vec3 move_offset     = dst_cam_pos - pos_flu;
 	float     move_offset_len = glm::length(move_offset);

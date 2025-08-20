@@ -13,6 +13,6 @@ void main() {
 
 	vec3 L = normalize(vec3(1.0, 1.0, 1.0));
 
-	vec3 color = vec3(max(dot(N, L), 0.5));
+	vec3 color = vec3(max(dot(N, L), 0.5)) * vec3(0.9, 0.95, 1.0);
 	out_Color = vec4(color, 1.0);
 }

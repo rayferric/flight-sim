@@ -159,11 +159,24 @@ public:
 		float cos_sweep = std::cos(glm::radians(airfoil_.sweep_deg));
 		float effective_aspect_ratio = aspect_ratio * cos_sweep * cos_sweep;
 
+		// ^ the aspect ratio is for just a single wing, not the whole pair
+		// the drag coefficient formula is for the full wing span
+		// let's assume that there's a symmetric pair of wings:
+		effective_aspect_ratio *= 2.0f;
+		// we should also include fuselage width in the span
+		// don't have that info here, but let's approximate with 1.5 for fighter
+		// jets
+		effective_aspect_ratio *= 1.5f;
+
 		// drag coefficient
 		float cd = mean_cl * mean_cl /
 		           (M_PI * effective_aspect_ratio * span_efficiency);
 		float induced_drag =
 		    cd * (air_density * mean_speed * mean_speed * 0.5f) * total_area;
+
+		// this drag force is for a full wing span
+		// for just this left/right wing it would be two times smaller
+		induced_drag /= 2.0f;
 
 		forces.induced_drag.force = induced_drag;
 		forces.induced_drag.origin_spanwise =

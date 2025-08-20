@@ -80,10 +80,12 @@ inline wing_speed_aoa_and_move_dirs wing_sectional_speed_aoa(
 		    section_vel - glm::dot(section_vel, wing_left_dir) * wing_left_dir;
 		float airspeed = glm::length(vel_in_aerodynamic_plane);
 		// aoa
-		float cosine = glm::dot(wing_forward_dir, glm::normalize(section_vel));
-		float aoa    = std::abs(cosine) <= 1.0f && !std::isnan(cosine)
-		                 ? glm::degrees(std::acos(cosine))
-		                 : 0.0f;
+		float cosine = glm::dot(
+		    wing_forward_dir, glm::normalize(vel_in_aerodynamic_plane)
+		);
+		cosine = std::clamp(cosine, -1.0f, 1.0f);
+		float aoa =
+		    !std::isnan(cosine) ? glm::degrees(std::acos(cosine)) : 0.0f;
 		// aoa signedness
 		float cosine_up  = glm::dot(wing_up_dir, glm::normalize(section_vel));
 		float aoa_sign   = cosine_up < 0.0f ? 1.0f : -1.0f;
@@ -122,7 +124,7 @@ inline wing_force_vec_3d map_wing_force_to_3d(
 	    move_dir - glm::dot(move_dir, wing_left_dir) * wing_left_dir;
 	glm::vec3 lift_dir =
 	    safe_normalize(glm::cross(aerodynamic_plane_move_dir, wing_left_dir));
-	glm::vec3 drag_dir = -aerodynamic_plane_move_dir;
+	glm::vec3 drag_dir = -move_dir;
 
 	wing_force_vec_3d result;
 	result.origin = wing_mount_rot * glm::vec3(
@@ -237,10 +239,10 @@ gather_wing_forces_3d(const wing_forces_3d &forces) {
 	for (const auto &lift : forces.sectional_lift) {
 		result.push_back(lift);
 	}
-	// for (const auto &drag : forces.sectional_drag) {
-	// 	result.push_back(drag);
-	// }
-	// result.push_back(forces.induced_drag);
+	for (const auto &drag : forces.sectional_drag) {
+		result.push_back(drag);
+	}
+	result.push_back(forces.induced_drag);
 
 	return result;
 }
