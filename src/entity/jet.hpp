@@ -34,7 +34,7 @@ public:
 
 protected:
 	uniform_buffer model_ubo;
-	mesh           mesh;
+	mesh           visual_mesh;
 	shader         shader_;
 
 	const float throttle_level_rate_of_change = 0.5f; // units/s

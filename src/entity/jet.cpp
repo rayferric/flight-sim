@@ -10,7 +10,7 @@ void jet::init(
     const std::filesystem::path &wing_force_debug_shader_vert_path,
     const std::filesystem::path &wing_force_debug_shader_frag_path
 ) {
-	mesh.load_from_file(mesh_path);
+	visual_mesh.load_from_file(mesh_path);
 	shader_.compile_from_file(shader_vert_path, shader_frag_path);
 	update_ubo();
 
@@ -92,7 +92,7 @@ void jet::init(
 void jet::draw(bool wing_force_debug) {
 	shader_.bind();
 	model_ubo.bind(1);
-	mesh.draw();
+	visual_mesh.draw();
 
 	// wing debug
 	if (wing_force_debug) {

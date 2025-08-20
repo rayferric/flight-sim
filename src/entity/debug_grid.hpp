@@ -16,7 +16,7 @@ public:
 	    float              axis_length     = 1.0f
 	) {
 		// mesh.load_from_file(section_mesh_path);
-		shader.compile_from_file(shader_vert_path, shader_frag_path);
+		grid_shader.compile_from_file(shader_vert_path, shader_frag_path);
 		this->render_distance = render_distance;
 
 		// generate a bunch of gizmos
@@ -54,7 +54,7 @@ public:
 	void draw() {
 		// set line thickness
 		glLineWidth(3.0f);
-		shader.bind();
+		grid_shader.bind();
 		model_ubo.bind(1);
 		grid_settings_ubo.bind(2);
 		mesh.draw();
@@ -72,6 +72,6 @@ public:
 protected:
 	uniform_buffer model_ubo, grid_settings_ubo;
 	colored_mesh   mesh;
-	shader         shader;
+	shader         grid_shader;
 	float          render_distance;
 };
