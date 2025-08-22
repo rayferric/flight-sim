@@ -465,6 +465,8 @@ void jet::update_physics_from_input(window &window, float dt) {
 	log_counter++;
 	if (log_counter % 100 == 0) {
 		std::cout << "vel: " << glm::length(vel) << " m/s" << std::endl;
+		float g = glm::length(accel + glm::vec3(0.0f, 0.0f, 9.81f)) / 9.81f;
+		std::cout << "pulling " << g << " Gs" << std::endl;
 	}
 }
 
