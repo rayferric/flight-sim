@@ -190,21 +190,34 @@ void jet::update_physics_from_input(window &window, float dt) {
 	if (window.is_glfw_key_down(GLFW_KEY_LEFT_SHIFT)) {
 		throttle_level += throttle_level_rate_of_change * dt;
 		throttle_level  = glm::min(throttle_level, 1.0f);
+		std::cout << "Throttle up " << throttle_level << std::endl;
 	}
 	if (window.is_glfw_key_down(GLFW_KEY_LEFT_CONTROL)) {
 		throttle_level -= throttle_level_rate_of_change * dt;
 		throttle_level  = glm::max(throttle_level, 0.0f);
+		std::cout << "Throttle down " << throttle_level << std::endl;
 	}
 	if (window.is_glfw_key_down(GLFW_KEY_Z)) {
 		throttle_level = 1.0f;
+		std::cout << "Throttle MAX" << std::endl;
 	} else if (window.is_glfw_key_down(GLFW_KEY_X)) {
 		throttle_level = 0.0f;
+		std::cout << "Throttle OFF" << std::endl;
 	}
 	if (!flaps_down_key_just_pressed && window.is_glfw_key_down(GLFW_KEY_F)) {
 		flaps_down                  = !flaps_down;
 		flaps_down_key_just_pressed = true;
+		std::cout << "Flaps " << (flaps_down ? "DOWN" : "UP") << std::endl;
 	} else if (!window.is_glfw_key_down(GLFW_KEY_F)) {
 		flaps_down_key_just_pressed = false;
+	}
+	if (!afterburner_key_just_pressed && window.is_glfw_key_down(GLFW_KEY_C)) {
+		afterburner_on               = !afterburner_on;
+		afterburner_key_just_pressed = true;
+		std::cout << "Afterburner " << (afterburner_on ? "ON" : "OFF")
+		          << std::endl;
+	} else if (!window.is_glfw_key_down(GLFW_KEY_C)) {
+		afterburner_key_just_pressed = false;
 	}
 	float pitch_down_level =
 	    static_cast<int>(window.is_glfw_key_down(GLFW_KEY_W)) -
@@ -257,7 +270,8 @@ void jet::update_physics_from_input(window &window, float dt) {
 	std::vector<jet_force_vec> forces;
 
 	// thrust
-	float         thrust = throttle_level * max_thrust_dry; // N
+	float thrust = throttle_level *
+	               (afterburner_on ? max_thrust_wet : max_thrust_dry); // N
 	jet_force_vec thrust_force;
 	glm::quat     thrust_rot = glm::angleAxis(
         glm::radians(-thrust_incidence_deg), glm::vec3(0.0f, 1.0f, 0.0f)
@@ -276,8 +290,12 @@ void jet::update_physics_from_input(window &window, float dt) {
 	include_wing_forces(
 	    main_wing,
 	    false,
-	    pitch_down_level * 20.0f + roll_right_level * 20.0f +
-	        (flaps_down ? 30.0f : 0.0f),
+	    std::clamp(
+	        pitch_down_level * 20.0f + roll_right_level * 30.0f +
+	            (flaps_down ? 20.0f : 0.0f),
+	        -45.0f,
+	        45.0f
+	    ),
 	    flaps_down ? 20.0f : 0.0f,
 	    local_vel,
 	    local_ang_vel,
@@ -290,8 +308,12 @@ void jet::update_physics_from_input(window &window, float dt) {
 	include_wing_forces(
 	    main_wing,
 	    true,
-	    pitch_down_level * 20.0f - roll_right_level * 20.0f +
-	        (flaps_down ? 30.0f : 0.0f),
+	    std::clamp(
+	        pitch_down_level * 20.0f - roll_right_level * 30.0f +
+	            (flaps_down ? 20.0f : 0.0f),
+	        -45.0f,
+	        45.0f
+	    ),
 	    flaps_down ? 20.0f : 0.0f,
 	    local_vel,
 	    local_ang_vel,
@@ -310,7 +332,8 @@ void jet::update_physics_from_input(window &window, float dt) {
 	    local_ang_vel,
 	    center_of_mass,
 	    left_h_stabilizer_root_pos,
-	    h_stabilizer_incidence_deg + pitch_down_level * 25.0f,
+	    h_stabilizer_incidence_deg + pitch_down_level * 25.0f +
+	        roll_right_level * 0.0f,
 	    forces
 	);
 	// right horizontal stabilizer
@@ -323,7 +346,8 @@ void jet::update_physics_from_input(window &window, float dt) {
 	    local_ang_vel,
 	    center_of_mass,
 	    right_h_stabilizer_root_pos,
-	    h_stabilizer_incidence_deg + pitch_down_level * 25.0f,
+	    h_stabilizer_incidence_deg + pitch_down_level * 25.0f -
+	        roll_right_level * 0.0f,
 	    forces
 	);
 	// left vertical stabilizer
@@ -364,7 +388,7 @@ void jet::update_physics_from_input(window &window, float dt) {
 	    local_ang_vel,
 	    center_of_mass,
 	    left_canard_root_pos,
-	    canard_incidence_deg - pitch_down_level * 20.0f,
+	    canard_incidence_deg + roll_right_level * 0.0f,
 	    forces
 	);
 	// right canard
@@ -377,7 +401,7 @@ void jet::update_physics_from_input(window &window, float dt) {
 	    local_ang_vel,
 	    center_of_mass,
 	    right_canard_root_pos,
-	    canard_incidence_deg - pitch_down_level * 20.0f,
+	    canard_incidence_deg - roll_right_level * 0.0f,
 	    forces
 	);
 
@@ -438,7 +462,10 @@ void jet::update_physics_from_input(window &window, float dt) {
 	}
 	update_ubo();
 
-	std::cout << "vel: " << glm::length(vel) << " m/s" << std::endl;
+	log_counter++;
+	if (log_counter % 100 == 0) {
+		std::cout << "vel: " << glm::length(vel) << " m/s" << std::endl;
+	}
 }
 
 void jet::update_ubo() {

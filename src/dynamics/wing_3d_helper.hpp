@@ -80,16 +80,19 @@ inline wing_speed_aoa_and_move_dirs wing_sectional_speed_aoa(
 		    section_vel - glm::dot(section_vel, wing_left_dir) * wing_left_dir;
 		float airspeed = glm::length(vel_in_aerodynamic_plane);
 		// aoa
-		float cosine = glm::dot(
+		float cosine_forward = glm::dot(
 		    wing_forward_dir, glm::normalize(vel_in_aerodynamic_plane)
 		);
-		cosine = std::clamp(cosine, -1.0f, 1.0f);
-		float aoa =
-		    !std::isnan(cosine) ? glm::degrees(std::acos(cosine)) : 0.0f;
-		// aoa signedness
-		float cosine_up  = glm::dot(wing_up_dir, glm::normalize(section_vel));
-		float aoa_sign   = cosine_up < 0.0f ? 1.0f : -1.0f;
-		aoa             *= aoa_sign;
+		float cosine_up =
+		    glm::dot(wing_up_dir, glm::normalize(vel_in_aerodynamic_plane));
+		cosine_forward = std::isnan(cosine_forward)
+		                   ? 1.0
+		                   : std::clamp(cosine_forward, -1.0f, 1.0f);
+		cosine_up =
+		    std::isnan(cosine_up) ? 0.0 : std::clamp(cosine_up, -1.0f, 1.0f);
+		float aoa = -glm::degrees(std::atan2(cosine_up, cosine_forward));
+		// ^ minus since when wing is moving upwards (positive atan2 angle), the
+		// air hits from above (need negative aoa)
 
 		result[i] = {airspeed, aoa};
 

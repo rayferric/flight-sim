@@ -52,10 +52,12 @@ protected:
 	float     throttle_level = 0.0f; // (0, 1), go over 1.0f for afterburner
 	float     fuel_level     = 1.0f; // (0, 1), 1.0f is full tank
 	bool      flaps_down     = false;
-	bool      flaps_down_key_just_pressed = false;
+	bool      flaps_down_key_just_pressed  = false;
+	bool      afterburner_on               = false;
+	bool      afterburner_key_just_pressed = false;
 
 	// wing parameters (look for wing params in init())
-	const glm::vec3 center_of_mass              = {-13.0f, 0.0f, -0.8f};
+	const glm::vec3 center_of_mass              = {-13.0f, 0.0f, -0.3f};
 	const glm::vec3 center_of_thrust            = {-20.0f, 0.0f, -0.8f};
 	const glm::vec3 left_wing_root_pos          = {-14.4f, 2.25f, 0.0f};
 	const glm::vec3 right_wing_root_pos         = {-14.4f, -2.25f, 0.0f};
@@ -65,7 +67,7 @@ protected:
 	const glm::vec3 right_v_stabilizer_root_pos = {-17.2f, -2.2f, 0.0f};
 	const glm::vec3 left_canard_root_pos        = {-9.4f, 1.9f, 0.1f};
 	const glm::vec3 right_canard_root_pos       = {-9.4f, -1.9f, 0.1f};
-	const float     thrust_incidence_deg        = 0.0f;
+	const float     thrust_incidence_deg        = 2.5f;
 	const float     wing_incidence_deg          = 4.0f;
 	const float     h_stabilizer_incidence_deg  = 2.5f;
 	const float     v_stabilizer_vshape_deg     = 0.0f; // perfectly vertical
@@ -86,6 +88,8 @@ protected:
 	float pitch_down_level_smooth  = 0.0f;
 	float roll_right_level_smooth  = 0.0f;
 	float rudder_left_level_smooth = 0.0f;
+
+	int log_counter = 0;
 
 	void update_ubo();
 };

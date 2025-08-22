@@ -13,8 +13,8 @@ public:
 	float max_sampled_cl          = 0.0f;
 	float min_sampled_cl          = 0.0f;
 	float sweep_deg;
-	float flap_eff_per_rad;
-	float slat_eff_per_rad;
+	float flap_eff_per_deg;
+	float slat_eff_per_deg;
 	// drag
 	float base_cd;
 	float cd_aoa2_scale;
@@ -33,8 +33,8 @@ public:
 	    float        curve_max_cl        = 2.4f,
 	    float        curve_max_aoa_deg   = 30.0f,
 	    float        sweep_deg           = 40.0f,
-	    float        flap_eff_per_rad    = 0.7f,
-	    float        slat_eff_per_rad    = 0.7f,
+	    float        flap_eff_per_deg    = 0.015f,
+	    float        slat_eff_per_deg    = 0.015f,
 	    float        base_cd             = 0.02f,
 	    float        cd_aoa2_scale       = 0.0002f,
 	    float        flap_cd_eff_per_deg = 0.001f,
@@ -58,8 +58,8 @@ public:
 			}
 		}
 		this->sweep_deg        = sweep_deg;
-		this->flap_eff_per_rad = flap_eff_per_rad;
-		this->slat_eff_per_rad = slat_eff_per_rad;
+		this->flap_eff_per_deg = flap_eff_per_deg;
+		this->slat_eff_per_deg = slat_eff_per_deg;
 		// drag
 		this->base_cd             = base_cd;
 		this->cd_aoa2_scale       = cd_aoa2_scale;
@@ -84,7 +84,7 @@ public:
 		// lift
 
 		// slat effect
-		float d_cl_max    = slat_eff_per_rad * glm::radians(slat_deg);
+		float d_cl_max    = slat_eff_per_deg * slat_deg;
 		float cl_max      = cl_vs_aoa_curve.y_max;
 		float curve_scale = (cl_max + d_cl_max) / cl_max; // [1, 1.something]
 
@@ -103,7 +103,7 @@ public:
 			    this->cl_vs_aoa_curve.x_min, min_sampled_stall_angle, aoa_deg
 			);
 		}
-		cl += flap_eff_factor * flap_eff_per_rad * glm::radians(flap_deg);
+		cl += flap_eff_factor * flap_eff_per_deg * flap_deg;
 
 		// sweep effect
 		if (this->sweep_deg > 0.0f) {
